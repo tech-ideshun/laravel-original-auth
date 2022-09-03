@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+
+# ---------------------------------
+# laravelを動かすコンテナ
+# ---------------------------------
+
+  app:
+  # どのポートを開いて繋ぐか。下記はコンテナの80番ポートを開いて、ホストの80番につなぐ
+    ports:
+      - "80:80"
+  # docker/app配下のDockerfileを使って、コンテナをビルドするという指定
+    build: ./docker/app
+  # コンテナの名前を指定
+    container_name: laravel_app
+  # ローカルのディレクトリとコンテナ上のディレクトリのリンクを設定
+  # ./src は docker-composer.yml のディレクトリ直下にある src を設定している
+  # コンテナが作成されると src ディレクトリからコンテナの /var/www/html にアクセスすることができる
+    volumes:
+      - ./src:/var/www/html
+
+# ----------------------------------
+# MySQLを動かすコンテナ
+# ----------------------------------
+
+  db:
+    image: mysql:5.7
+    container_name: laravel_db
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel_db
+      MYSQL_USER: laravel_user
+      MYSQL_PASSWORD: laravel_pass
+      TZ: 'Asia/Tokyo'
+
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+
+    volumes:
+      - ./docker/db/data:/var/lib/mysql
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - 3306:3306
